@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>카테고리 선택</title>
+</head>
+<body>
+    <h1>원하는 기능을 선택하세요</h1>
+    <form action="/select_region" method="post">
+        <select name="category" required>
+            <option value="">-- 선택하세요 --</option>
+            <option value="음식점">음식점 추천</option>
+            <option value="숙소">숙소 추천</option>
+            <option value="관광지">관광지 추천</option>
+            <option value="쇼핑">쇼핑 추천</option>
+        </select>
+        <button type="submit">다음</button>
+    </form>
+</body>
+</html>
