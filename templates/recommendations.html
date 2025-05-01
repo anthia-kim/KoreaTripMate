@@ -1,21 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>추천 결과</title>
+    <meta charset="UTF-8">
+    <title>KoreaTripMate</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f6fa;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            font-size: 28px;
+            background-color: #4e73df;
+            color: white;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-top: -10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 280px;
+            padding: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .card p {
+            margin: 8px 0 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .no-results {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 18px;
+            color: #999;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ city }} {{ district }}의 {{ category }} 추천 리스트</h1>
+    <h1>🌏 KoreaTripMate</h1>
+    <p class="subtitle">{{ category }} 추천 결과 - {{ city }} {{ district }}</p>
 
     {% if error %}
-        <p>{{ error }}</p>
+        <p class="no-results">{{ error }}</p>
     {% elif places %}
-        <ul>
+        <div class="container">
             {% for place in places %}
-                <li>{{ place.title }} (주소: {{ place.addr1 }})</li>
+                <div class="card">
+                    <h3>{{ place.title }}</h3>
+                    <p><strong>전화번호:</strong> {{ place.tel if place.tel else "정보 없음" }}</p>
+                    <p><strong>운영시간:</strong> {{ place.openTime if place.openTime else "정보 없음" }}</p>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
-        <p>추천 결과가 없습니다.</p>
+        <p class="no-results">추천 결과가 없습니다. (places 길이: {{ places|length }})</p>
     {% endif %}
+
+    <div style="text-align:center; margin-top: 40px;">
+        <a href="/" style="
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4e73df;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        " onmouseover="this.style.backgroundColor='#3752c5'" onmouseout="this.style.backgroundColor='#4e73df'">
+            홈으로 돌아가기
+        </a>
+    </div>
 </body>
 </html>

@@ -33,15 +33,17 @@ async def show_recommendations(
     request: Request,
     category: str = Form(...),
     city: str = Form(...),
-    district: str = Form(...)
+    district: str = Form(...),
+    city_name: str = Form(...),
+    district_name: str = Form(...)
 ):
     area_data = await get_area_code(city, district)
     if not area_data:
         return templates.TemplateResponse("recommendations.html", {
             "request": request,
             "category": category,
-            "city": city,
-            "district": district,
+            "city": city_name,
+            "district": district_name,
             "places": [],
             "error": "지역 정보를 찾을 수 없습니다."
         })
@@ -52,8 +54,8 @@ async def show_recommendations(
     return templates.TemplateResponse("recommendations.html", {
         "request": request,
         "category": category,
-        "city": city,
-        "district": district,
+        "city": city_name,
+        "district": district_name,
         "places": places,
         "error": None
     })
@@ -70,8 +72,7 @@ async def get_cities():
     }
 
     response = requests.get(url, params=params)
-    print("[DEBUG] 상태코드:", response.status_code)
-    print("[DEBUG] 응답 텍스트:", response.text[:300])
+    
 
     if response.status_code != 200:
         return JSONResponse(content={"error": "Failed to fetch cities"}, status_code=500)
@@ -79,7 +80,6 @@ async def get_cities():
     try:
         data = response.json()
     except Exception as e:
-        print("[DEBUG] JSON 파싱 실패:", str(e))
         return JSONResponse(content={"error": "Invalid JSON response"}, status_code=500)
 
     items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
@@ -93,8 +93,7 @@ async def get_districts(area_code: int):
     url = f"http://apis.data.go.kr/B551011/KorService1/areaCode1?serviceKey={SERVICE_KEY}&areaCode={area_code}&MobileOS=ETC&MobileApp=AppTest&_type=json&numOfRows=100"
 
     response = requests.get(url)
-    print("[DEBUG] /get_districts 응답코드:", response.status_code)
-    print("[DEBUG] 응답 텍스트:", response.text[:300])
+    
 
     if response.status_code != 200:
         return JSONResponse(content={"error": "Failed to fetch districts"}, status_code=500)
@@ -102,7 +101,6 @@ async def get_districts(area_code: int):
     try:
         data = response.json()
     except Exception as e:
-        print("[DEBUG] JSON 파싱 실패:", str(e))
         return JSONResponse(content={"error": "Invalid JSON"}, status_code=500)
 
     items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
@@ -111,7 +109,12 @@ async def get_districts(area_code: int):
 
 
 # 🔹 (보조 함수) 시/도 + 시군구 코드를 얻는 함수
-async def get_area_code(city: str, district: str):
+async def get_area_code(city_code: str, district_code: str):
+    print("[DEBUG] city_code:", city_code)
+    print("[DEBUG] district_code:", district_code)
+    return int(city_code), int(district_code)
+
+
     url = f"http://apis.data.go.kr/B551011/KorService1/areaCode1?serviceKey={SERVICE_KEY}"
     params = {
         "MobileOS": "ETC",
@@ -126,6 +129,7 @@ async def get_area_code(city: str, district: str):
 
     data = response.json()
     for item in data.get("response", {}).get("body", {}).get("items", {}).get("item", []):
+        print("시도 이름 확인:", item.get("name"))
         if item.get("name") == city:
             area_code = item.get("code")
             sub_url = f"http://apis.data.go.kr/B551011/KorService1/areaCode1?serviceKey={SERVICE_KEY}"
@@ -149,14 +153,25 @@ async def get_area_code(city: str, district: str):
 
 # 🔹 (보조 함수) 추천 리스트 가져오기
 async def get_recommendations(category: str, area_code: str, sigungu_code: str):
+    print("[DEBUG] 요청 카테고리:", category)
+    print("[DEBUG] 지역 코드:", area_code, sigungu_code)
+
+    CATEGORY_CODE_MAP = {
+        "음식점": "39",
+        "숙소": "32",
+        "관광지": "12",
+        "쇼핑": "38"
+    }
+
     content_type_id = CATEGORY_CODE_MAP.get(category)
     if not content_type_id:
+        print("[DEBUG] 유효하지 않은 카테고리입니다.")
         return []
 
     url = f"http://apis.data.go.kr/B551011/KorService1/areaBasedList1?serviceKey={SERVICE_KEY}"
     params = {
         "MobileOS": "ETC",
-        "MobileApp": "AppTest",
+        "MobileApp": "KoreaTripMate",
         "_type": "json",
         "areaCode": area_code,
         "sigunguCode": sigungu_code,
@@ -165,9 +180,30 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
     }
 
     response = requests.get(url, params=params)
+    print("[DEBUG] 상태코드:", response.status_code)
+
     if response.status_code != 200:
+        print("[DEBUG] API 호출 실패")
         return []
 
-    data = response.json()
+    print("[DEBUG] 응답 일부:", response.text[:300])  # 너무 길면 잘라서 보기
+
+    try:
+        data = response.json()
+    except Exception as e:
+        print("[DEBUG] JSON 파싱 오류:", e)
+        return []
+
     items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
-    return items
+    print("[DEBUG] 추천 결과 개수:", len(items))
+
+    results = []
+    for item in items:
+        print("▶", item.get("title"))
+        results.append({
+            "title": item.get("title", "이름 없음"),
+            "tel": item.get("tel", ""),
+            "openTime": item.get("openTime", "")
+        })
+
+    return results

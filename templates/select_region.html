@@ -1,75 +1,124 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>지역 선택</title>
-    <script>
-        async function loadCities() {
-            const citySelect = document.getElementById("city");
-            const response = await fetch("/get_cities");
-            const data = await response.json();
-            const cities = data.cities;
+  <meta charset="UTF-8">
+  <title>KoreaTripMate - 지역 선택</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f6fa;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
 
-            if (!cities || cities.length === 0) {
-                alert("시/도 정보를 불러올 수 없습니다.");
-                return;
-            }
+    h1 {
+      font-size: 32px;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
 
-            cities.forEach(city => {
-                const option = document.createElement("option");
-                option.value = city.name;  // 또는 city.code
-                option.text = city.name;
-                citySelect.appendChild(option);
-            });
-        }
+    .subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 30px;
+    }
 
-        async function loadDistricts() {
-            const citySelect = document.getElementById("city");
-            const selectedCityName = citySelect.value;
-            const districtSelect = document.getElementById("district");
-            districtSelect.innerHTML = "";
+    form {
+      background-color: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 300px;
+    }
 
-            if (!selectedCityName) return;
+    select, button {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
 
-            // 먼저 city 이름을 코드로 바꾸기
-            const cityResponse = await fetch("/get_cities");
-            const cityData = await cityResponse.json();
-            const matched = cityData.cities.find(c => c.name === selectedCityName);
-            if (!matched) return;
+    button {
+      background-color: #4e73df;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
 
-            const areaCode = matched.code;
-            const response = await fetch(`/get_districts?area_code=${areaCode}`);
-            const districts = await response.json();
+    button:hover {
+      background-color: #3752c5;
+    }
+  </style>
 
-            districts.forEach(district => {
-                const option = document.createElement("option");
-                option.value = district.name;
-                option.text = district.name;
-                districtSelect.appendChild(option);
-            });
-        }
+  <script>
+    async function loadCities() {
+      const citySelect = document.getElementById("city");
+      const response = await fetch("/get_cities");
+      const data = await response.json();
+      data.cities.forEach(city => {
+        const option = document.createElement("option");
+        option.value = city.code;
+        option.text = city.name;
+        citySelect.appendChild(option);
+      });
+    }
 
-        window.onload = loadCities;
-    </script>
+    async function loadDistricts() {
+      const citySelect = document.getElementById("city");
+      const districtSelect = document.getElementById("district");
+      const areaCode = citySelect.value;
+      districtSelect.innerHTML = "<option value=\"\" disabled selected>시군구 선택</option>";
+
+      const response = await fetch(`/get_districts?area_code=${areaCode}`);
+      const districts = await response.json();
+      districts.forEach(d => {
+        const option = document.createElement("option");
+        option.value = d.code;
+        option.text = d.name;
+        districtSelect.appendChild(option);
+      });
+
+      // 지역 이름 hidden input 값 설정
+      const cityText = citySelect.options[citySelect.selectedIndex].text;
+      document.getElementById("city_name").value = cityText;
+    }
+
+    function setDistrictName() {
+      const districtSelect = document.getElementById("district");
+      const districtText = districtSelect.options[districtSelect.selectedIndex].text;
+      document.getElementById("district_name").value = districtText;
+    }
+
+    window.onload = loadCities;
+  </script>
 </head>
 <body>
-    <h1>지역을 선택하세요 ({{ category }})</h1>
-    <form action="/show_recommendations" method="post">
-        <input type="hidden" name="category" value="{{ category }}">
+  <h1>🌏 KoreaTripMate</h1>
+  <p class="subtitle">{{ category }} 추천을 위한 지역을 선택하세요</p>
 
-        <label>시/도 선택:
-            <select id="city" name="city" onchange="loadDistricts()" required>
-                <option value="">-- 선택하세요 --</option>
-            </select>
-        </label><br><br>
+  <form action="/show_recommendations" method="post">
+    <input type="hidden" name="category" value="{{ category }}">
+    <input type="hidden" id="city_name" name="city_name">
+    <input type="hidden" id="district_name" name="district_name">
 
-        <label>시군구 선택:
-            <select id="district" name="district" required>
-                <option value="">-- 먼저 시/도를 선택하세요 --</option>
-            </select>
-        </label><br><br>
+    <select id="city" name="city" onchange="loadDistricts()" required>
+      <option value="" disabled selected>시/도 선택</option>
+    </select>
 
-        <button type="submit">추천 보기</button>
-    </form>
+    <select id="district" name="district" onchange="setDistrictName()" required>
+      <option value="" disabled selected>시군구 선택</option>
+    </select>
+
+    <button type="submit">추천 보기</button>
+  </form>
 </body>
 </html>
