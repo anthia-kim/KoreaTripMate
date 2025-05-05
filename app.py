@@ -176,7 +176,7 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
         "areaCode": area_code,
         "sigunguCode": sigungu_code,
         "contentTypeId": content_type_id,
-        "numOfRows": 10
+        "numOfRows": 12
     }
 
     response = requests.get(url, params=params)
@@ -186,7 +186,7 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
         print("[DEBUG] API 호출 실패")
         return []
 
-    print("[DEBUG] 응답 일부:", response.text[:300])  # 너무 길면 잘라서 보기
+    print("[DEBUG] 응답 일부:", response.text[:300])  
 
     try:
         data = response.json()
@@ -203,7 +203,8 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
         results.append({
             "title": item.get("title", "이름 없음"),
             "tel": item.get("tel", ""),
-            "openTime": item.get("openTime", "")
+            "openTime": item.get("openTime", ""),
+            "addr": item.get("addr1", "")
         })
 
     return results

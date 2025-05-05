@@ -78,6 +78,7 @@
             {% for place in places %}
                 <div class="card">
                     <h3>{{ place.title }}</h3>
+                    <p><strong>주소:</strong> {{ place.addr if place.addr else "정보 없음" }}</p>
                     <p><strong>전화번호:</strong> {{ place.tel if place.tel else "정보 없음" }}</p>
                     <p><strong>운영시간:</strong> {{ place.openTime if place.openTime else "정보 없음" }}</p>
                 </div>
