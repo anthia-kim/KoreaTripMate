@@ -72,7 +72,10 @@
     <p class="subtitle">{{ category }} 추천 결과 - {{ city }} {{ district }}</p>
 
     {% if weather %}
-    <p style="text-align:center; font-size:16px;">현재 날씨: {{ weather }}</p>
+    {% if weather %}
+  <p style="text-align:center; font-size:18px;">현재 날씨: {{ weather }}</p>
+{% endif %}
+
   {% endif %}
 
     {% if error %}

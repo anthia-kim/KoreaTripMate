@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from config import SERVICE_KEY,OPENWEATHER_KEY  # .env에서 API 키 불러오기
 
 from location_coords import location_coords
-from weather import get_current_weather
+from weather import get_current_weather, get_weather_display_text
 from filter import filter_places_by_weather
 
 app = FastAPI()
@@ -58,12 +58,16 @@ async def show_recommendations(
     area_code, sigungu_code = area_data
     places = await get_recommendations(category, area_code, sigungu_code)
 
+    weather = None
+
       #  날씨 기반 필터링 (관광지일 경우에만)
     if category == "관광지":
         coords = location_coords.get(city)
         if coords:
             lat, lon = coords
             weather = get_current_weather(lat, lon)
+            weather_display = get_weather_display_text(weather)
+            print("[DEBUG] 현재 날씨:", weather)
             if weather:
                 places = filter_places_by_weather(places, weather)
 
@@ -74,6 +78,7 @@ async def show_recommendations(
         "district": district_name,
         "places": places,
         "weather": weather,
+        "weather": weather_display,
         "error": None
     })
 
@@ -220,6 +225,7 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
 
     results = []
     for item in items:
+        print("[DEBUG] cat3:", item.get("cat3"), "| title:", item.get("title"))
         results.append({
             "title": item.get("title", "이름 없음"),
             "tel": item.get("tel", ""),
@@ -227,13 +233,6 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
             "addr": item.get("addr1", ""),
             "cat3": item.get("cat3", "")  # 관광지 세부 분류
         })
-
-    # 관광지인 경우에만 날씨로 필터링
-    if content_type_id == "12":
-        # 서울 위도경도 예시 (실제 앱에선 선택된 도시 좌표 필요)
-        weather = get_current_weather(lat=37.5665, lon=126.9780)
-        print("[DEBUG] 현재 날씨:", weather)
-        results = filter_places_by_weather(results, weather)
 
     return results
 
