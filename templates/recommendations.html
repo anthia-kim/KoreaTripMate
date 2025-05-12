@@ -71,6 +71,13 @@
     <h1>🌏 KoreaTripMate</h1>
     <p class="subtitle">{{ category }} 추천 결과 - {{ city }} {{ district }}</p>
 
+    {% if weather %}
+    {% if weather %}
+  <p style="text-align:center; font-size:18px;">현재 날씨: {{ weather }}</p>
+{% endif %}
+
+  {% endif %}
+
     {% if error %}
         <p class="no-results">{{ error }}</p>
     {% elif places %}

@@ -1,8 +1,15 @@
+import os
+import requests
+
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import requests
-from config import SERVICE_KEY  # .env에서 API 키 불러오기
+
+from config import SERVICE_KEY,OPENWEATHER_KEY  # .env에서 API 키 불러오기
+
+from location_coords import location_coords
+from weather import get_current_weather, get_weather_display_text
+from filter import filter_places_by_weather
 
 app = FastAPI()
 
@@ -51,12 +58,27 @@ async def show_recommendations(
     area_code, sigungu_code = area_data
     places = await get_recommendations(category, area_code, sigungu_code)
 
+    weather = None
+
+      #  날씨 기반 필터링 (관광지일 경우에만)
+    if category == "관광지":
+        coords = location_coords.get(city)
+        if coords:
+            lat, lon = coords
+            weather = get_current_weather(lat, lon)
+            weather_display = get_weather_display_text(weather)
+            print("[DEBUG] 현재 날씨:", weather)
+            if weather:
+                places = filter_places_by_weather(places, weather)
+
     return templates.TemplateResponse("recommendations.html", {
         "request": request,
         "category": category,
         "city": city_name,
         "district": district_name,
         "places": places,
+        "weather": weather,
+        "weather": weather_display,
         "error": None
     })
 
@@ -89,7 +111,7 @@ async def get_cities():
 # ▶ 5. (API) 선택한 시/도에 대한 시군구 리스트 가져오기
 @app.get("/get_districts", response_class=JSONResponse)
 async def get_districts(area_code: int):
-    # 🔥 areaCode는 URL에 직접 포함
+    #  areaCode는 URL에 직접 포함
     url = f"http://apis.data.go.kr/B551011/KorService1/areaCode1?serviceKey={SERVICE_KEY}&areaCode={area_code}&MobileOS=ETC&MobileApp=AppTest&_type=json&numOfRows=100"
 
     response = requests.get(url)
@@ -179,6 +201,10 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
         "numOfRows": 12
     }
 
+    # 관광지일 때만 cat3 포함 위해 listYN 추가
+    if content_type_id == "12":
+        params["listYN"] = "Y"
+
     response = requests.get(url, params=params)
     print("[DEBUG] 상태코드:", response.status_code)
 
@@ -186,7 +212,7 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
         print("[DEBUG] API 호출 실패")
         return []
 
-    print("[DEBUG] 응답 일부:", response.text[:300])  
+    print("[DEBUG] 응답 일부:", response.text[:300])
 
     try:
         data = response.json()
@@ -199,12 +225,15 @@ async def get_recommendations(category: str, area_code: str, sigungu_code: str):
 
     results = []
     for item in items:
-        print("▶", item.get("title"))
+        print("[DEBUG] cat3:", item.get("cat3"), "| title:", item.get("title"))
         results.append({
             "title": item.get("title", "이름 없음"),
             "tel": item.get("tel", ""),
             "openTime": item.get("openTime", ""),
-            "addr": item.get("addr1", "")
+            "addr": item.get("addr1", ""),
+            "cat3": item.get("cat3", "")  # 관광지 세부 분류
         })
 
     return results
+
+
