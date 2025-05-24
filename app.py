@@ -10,8 +10,14 @@ from config import SERVICE_KEY,OPENWEATHER_KEY  # .env에서 API 키 불러오�
 from location_coords import location_coords
 from weather import get_current_weather, get_weather_display_text
 from filter import filter_places_by_weather
+from recommender.recommend_model import (
+    get_hotel_recommendations,
+    get_restaurant_recommendations
+)
+
 
 app = FastAPI()
+
 
 # HTML 템플릿 폴더 설정
 templates = Jinja2Templates(directory="templates")
@@ -23,6 +29,15 @@ CATEGORY_CODE_MAP = {
     "관광지": "12",    # 관광지
     "쇼핑": "38",      # 쇼핑
 }
+
+@app.get("/recommend/hotel")
+async def recommend_hotel(user_id: int = 1):
+    return {"recommendations": get_hotel_recommendations(user_id)}
+
+@app.get("/recommend/restaurant")
+async def recommend_restaurant(user_id: int = 1):
+    return {"recommendations": get_restaurant_recommendations(user_id)}
+
 
 # ▶ 1. 카테고리 선택 페이지
 @app.get("/", response_class=HTMLResponse)
@@ -56,7 +71,24 @@ async def show_recommendations(
         })
 
     area_code, sigungu_code = area_data
-    places = await get_recommendations(category, area_code, sigungu_code)
+    places = await get_api_recommendations(category, area_code, sigungu_code)
+
+
+    if category == "숙소":
+        recommended_names = get_hotel_recommendations(user_id=1)
+        print("[DEBUG] 추천된 숙소 이름 목록:", recommended_names)
+        places = [
+            p for p in places
+            if any(name in p["title"] for name in recommended_names)
+        ]
+    
+    elif category == "음식점":
+        recommended_names = get_restaurant_recommendations(user_id=1)
+        print("[DEBUG] 추천된 음식점 이름 목록:", recommended_names)
+        places = [
+            p for p in places
+            if any(name in p["title"] for name in recommended_names)
+    ]
 
     weather = None
 
@@ -174,7 +206,7 @@ async def get_area_code(city_code: str, district_code: str):
     return None
 
 # 🔹 (보조 함수) 추천 리스트 가져오기
-async def get_recommendations(category: str, area_code: str, sigungu_code: str):
+async def get_api_recommendations(category: str, area_code: str, sigungu_code: str):
     print("[DEBUG] 요청 카테고리:", category)
     print("[DEBUG] 지역 코드:", area_code, sigungu_code)
 
