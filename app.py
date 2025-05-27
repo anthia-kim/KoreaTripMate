@@ -14,7 +14,9 @@ from recommender.recommend_model import (
     get_hotel_recommendations,
     get_restaurant_recommendations
 )
+from translatepy import Translator
 
+translator = Translator()
 
 app = FastAPI()
 
@@ -46,10 +48,20 @@ async def select_category(request: Request):
 
 # ▶ 2. 지역 선택 페이지 (시/도, 시군구)
 @app.post("/select_region", response_class=HTMLResponse)
-async def select_region(request: Request, category: str = Form(...)):
-    return templates.TemplateResponse("select_region.html", {"request": request, "category": category})
+async def select_region(request: Request, 
+                        category: str = Form(...),
+                        language: str = Form(...)
+                        ):
+    return templates.TemplateResponse("select_region.html", {
+        "request": request, 
+        "category": category,
+        "language": language
+        })
 
 # ▶ 3. 최종 추천 결과 페이지
+from translatepy import Translator
+translator = Translator()
+
 @app.post("/show_recommendations", response_class=HTMLResponse)
 async def show_recommendations(
     request: Request,
@@ -57,8 +69,10 @@ async def show_recommendations(
     city: str = Form(...),
     district: str = Form(...),
     city_name: str = Form(...),
-    district_name: str = Form(...)
+    district_name: str = Form(...),
+    language: str = Form(...)
 ):
+    # 지역 코드 얻기
     area_data = await get_area_code(city, district)
     if not area_data:
         return templates.TemplateResponse("recommendations.html", {
@@ -67,32 +81,35 @@ async def show_recommendations(
             "city": city_name,
             "district": district_name,
             "places": [],
+            "weather": None,
+            "weather_display": None,
+            "language": language,
             "error": "지역 정보를 찾을 수 없습니다."
         })
 
     area_code, sigungu_code = area_data
+
+    # 장소 추천 API 호출
     places = await get_api_recommendations(category, area_code, sigungu_code)
 
+    original_places = places.copy()
 
-    if category == "숙소":
-        recommended_names = get_hotel_recommendations(user_id=1)
-        print("[DEBUG] 추천된 숙소 이름 목록:", recommended_names)
-        places = [
-            p for p in places
-            if any(name in p["title"] for name in recommended_names)
-        ]
-    
-    elif category == "음식점":
-        recommended_names = get_restaurant_recommendations(user_id=1)
-        print("[DEBUG] 추천된 음식점 이름 목록:", recommended_names)
-        places = [
-            p for p in places
-            if any(name in p["title"] for name in recommended_names)
-    ]
+    # 다국어 번역 (title, addr, openTime)
+    if language != "Korean":
+        for place in places:
+            for field in ["title", "addr", "openTime"]:
+                if place.get(field):
+                    try:
+                        translated = translator.translate(place[field], language)
+                        place[field] = translated.result
+                    except:
+                        print(f"[WARN] 번역 실패: {place[field]}")
 
+ 
+
+    # 날씨 기반 필터링 (관광지일 때)
     weather = None
-
-      #  날씨 기반 필터링 (관광지일 경우에만)
+    weather_display = None
     if category == "관광지":
         coords = location_coords.get(city)
         if coords:
@@ -100,9 +117,23 @@ async def show_recommendations(
             weather = get_current_weather(lat, lon)
             weather_display = get_weather_display_text(weather)
             print("[DEBUG] 현재 날씨:", weather)
+            
             if weather:
-                places = filter_places_by_weather(places, weather)
+                places = filter_places_by_weather(original_places, weather)
 
+                #  필터링 후 아무것도 없으면 원래 추천 보여주기
+                if not places:
+                    print("[DEBUG] 날씨 조건에 맞는 장소 없음. 원본 추천을 사용합니다.")
+                    places = original_places
+
+        # 날씨도 번역 (옵션)
+        if language != "Korean" and weather:
+            try:
+                weather = translator.translate(weather, language).result
+            except:
+                print("[WARN] 날씨 번역 실패")
+
+    # 최종 추천 결과 렌더링
     return templates.TemplateResponse("recommendations.html", {
         "request": request,
         "category": category,
@@ -110,9 +141,11 @@ async def show_recommendations(
         "district": district_name,
         "places": places,
         "weather": weather,
-        "weather": weather_display,
+        "weather_display": weather_display,
+        "language": language,
         "error": None
     })
+
 
 # ▶ 4. (API) 시/도 리스트 가져오기
 @app.get("/get_cities", response_class=JSONResponse)
@@ -248,9 +281,15 @@ async def get_api_recommendations(category: str, area_code: str, sigungu_code: s
 
     try:
         data = response.json()
+
+    # 추가 방어 코드
+        if isinstance(data, str):
+            import json
+            data = json.loads(data)
     except Exception as e:
-        print("[DEBUG] JSON 파싱 오류:", e)
+        print("[DEBUG] JSON 파싱 실패:", e)
         return []
+
 
     items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
     print("[DEBUG] 추천 결과 개수:", len(items))

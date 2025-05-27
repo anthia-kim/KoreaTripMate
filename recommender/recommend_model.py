@@ -5,14 +5,9 @@ from sklearn.ensemble import RandomForestRegressor
 # 숙소 추천
 def get_hotel_recommendations(user_id: int):
     df = pd.read_csv("data/Dataset_Predict_Rating_hotel.csv")
-    features = df[['User ID', 'Hotel Name', 'Satisfaction', 'Staff', 'Facilities', 'Cleanliness', 'Comfort', 'Value for money', 'Location', 'Free Wifi']]
+    features = df[['User ID', 'Hotel ID', 'Satisfaction', 'Staff', 'Facilities',
+                   'Cleanliness', 'Comfort', 'Value for money', 'Location', 'Free Wifi']]
     labels = df['Ratings']
-
-    # 문자열 feature인 'Hotel Name' 인코딩
-    df['Hotel Name'] = df['Hotel Name'].astype('category')
-    df['Hotel Name Code'] = df['Hotel Name'].cat.codes
-    features = features.copy()
-    features['Hotel Name'] = df['Hotel Name Code']
 
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(features, labels)
@@ -25,9 +20,9 @@ def get_hotel_recommendations(user_id: int):
     predictions = model.predict(user_features)
 
     top_indices = predictions.argsort()[::-1][:3]
-    top_hotels = user_data.iloc[top_indices]['Hotel Name'].tolist()
+    top_hotels = user_data.iloc[top_indices]['Hotel ID'].tolist()
 
-    return top_hotels  
+    return [f"호텔 {hid}" for hid in top_hotels]
 
 # 음식점 추천
 def get_restaurant_recommendations(user_id: int):
