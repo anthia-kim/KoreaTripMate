@@ -69,14 +69,20 @@
 </head>
 <body>
     <h1>🌏 KoreaTripMate</h1>
-    <p class="subtitle">{{ category }} 추천 결과 - {{ city }} {{ district }}</p>
+    <p class="subtitle">
+        {{ category }} 추천 결과 - {{ city }} {{ district }}<br>
+        🌐 번역 언어: {{ language }}
+    </p>
 
     {% if weather %}
-    {% if weather %}
-  <p style="text-align:center; font-size:18px;">현재 날씨: {{ weather }}</p>
-{% endif %}
-
-  {% endif %}
+        <p style="text-align:center; font-size:18px;">
+            {% if language == "English" %}Current weather: {{ weather }}
+            {% elif language == "Japanese" %}現在の天気: {{ weather }}
+            {% elif language == "Chinese" %}当前天气: {{ weather }}
+            {% else %}현재 날씨: {{ weather }}
+            {% endif %}
+        </p>
+    {% endif %}
 
     {% if error %}
         <p class="no-results">{{ error }}</p>
@@ -85,14 +91,66 @@
             {% for place in places %}
                 <div class="card">
                     <h3>{{ place.title }}</h3>
-                    <p><strong>주소:</strong> {{ place.addr if place.addr else "정보 없음" }}</p>
-                    <p><strong>전화번호:</strong> {{ place.tel if place.tel else "정보 없음" }}</p>
-                    <p><strong>운영시간:</strong> {{ place.openTime if place.openTime else "정보 없음" }}</p>
+
+                    <p>
+                        <strong>
+                            {% if language == "English" %}Address:
+                            {% elif language == "Japanese" %}住所:
+                            {% elif language == "Chinese" %}地址:
+                            {% else %}주소:
+                            {% endif %}
+                        </strong>
+                        {{ place.addr if place.addr else (
+                            "Not available" if language == "English" else
+                            "情報なし" if language == "Japanese" else
+                            "无信息" if language == "Chinese" else
+                            "정보 없음"
+                        ) }}
+                    </p>
+
+                    <p>
+                        <strong>
+                            {% if language == "English" %}Phone:
+                            {% elif language == "Japanese" %}電話番号:
+                            {% elif language == "Chinese" %}电话:
+                            {% else %}전화번호:
+                            {% endif %}
+                        </strong>
+                        {{ place.tel if place.tel else (
+                            "Not available" if language == "English" else
+                            "情報なし" if language == "Japanese" else
+                            "无信息" if language == "Chinese" else
+                            "정보 없음"
+                        ) }}
+                    </p>
+
+                    <p>
+                        <strong>
+                            {% if language == "English" %}Opening Hours:
+                            {% elif language == "Japanese" %}営業時間:
+                            {% elif language == "Chinese" %}营业时间:
+                            {% else %}운영시간:
+                            {% endif %}
+                        </strong>
+                        {{ place.openTime if place.openTime else (
+                            "Not available" if language == "English" else
+                            "情報なし" if language == "Japanese" else
+                            "无信息" if language == "Chinese" else
+                            "정보 없음"
+                        ) }}
+                    </p>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <p class="no-results">추천 결과가 없습니다. (places 길이: {{ places|length }})</p>
+        <p class="no-results">
+            {% if language == "English" %}No recommendations found.
+            {% elif language == "Japanese" %}おすすめが見つかりませんでした。
+            {% elif language == "Chinese" %}未找到推荐结果。
+            {% else %}추천 결과가 없습니다.
+            {% endif %}
+            (places 길이: {{ places|length }})
+        </p>
     {% endif %}
 
     <div style="text-align:center; margin-top: 40px;">
@@ -106,7 +164,11 @@
             font-size: 16px;
             transition: background-color 0.3s ease;
         " onmouseover="this.style.backgroundColor='#3752c5'" onmouseout="this.style.backgroundColor='#4e73df'">
-            홈으로 돌아가기
+            {% if language == "English" %}Go to Home
+            {% elif language == "Japanese" %}ホームに戻る
+            {% elif language == "Chinese" %}回到首页
+            {% else %}홈으로 돌아가기
+            {% endif %}
         </a>
     </div>
 </body>
