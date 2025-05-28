@@ -29,8 +29,7 @@
 ## 👥 팀원 소개
 
 | 이름 | 전공 | 역할 | GitHub |
-|------|------|------|--------|
-| 김현정 | 사이버보안학과 | 프론트엔드, 백엔드, GIT 관리, 프로젝트 총괄 | [@anthia-kim](https://github.com/anthia-kim) |
+|------|------|------업보안학과 | 프론트엔드, 백엔드, GIT 관리, 프로젝트 총괄 | [@anthia-kim](https://github.com/anthia-kim) |
 | 정민지 | 통계데이터사이언스학과 | 프론트엔드, 자료조사 | [@minji13](https://github.com/minji13) |
 | 최준영 | 소프트웨어학과 | 백엔드 | [@cjy302](https://github.com/cjy302) |
 
@@ -52,7 +51,7 @@
 ### 🔧 개발 스택
 - 백엔드 : FastAPI
 - 프론트엔드 : HTML / CSS , Jinja2
-- 
+  
 ### 📡 외부 API
    - TourAPI
   
