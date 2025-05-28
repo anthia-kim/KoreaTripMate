@@ -41,6 +41,7 @@
             width: 280px;
             padding: 20px;
             transition: transform 0.2s ease-in-out;
+            cursor: pointer;
         }
 
         .card:hover {
@@ -65,111 +66,152 @@
             font-size: 18px;
             color: #999;
         }
+
+        #mapContainer {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 600px;
+            height: 700px;
+            background: #fff;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        #mapPlaceImage {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        #mapPlaceTitle {
+            padding: 10px;
+            font-size: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #map {
+            width: 100%;
+            height: 300px;
+        }
+
+        #mapContainer .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: #f5f6fa;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+        }
     </style>
+
+    <script type="text/javascript"
+            src="//dapi.kakao.com/v2/maps/sdk.js?appkey=9f0153b29ad314b4457d89678468c522&libraries=services">
+    </script>
 </head>
 <body>
-    <h1>🌏 KoreaTripMate</h1>
-    <p class="subtitle">
-        {{ category }} 추천 결과 - {{ city }} {{ district }}<br>
-        🌐 번역 언어: {{ language }}
-    </p>
+<h1>🌏 KoreaTripMate</h1>
+<p class="subtitle">{{ category }} 추천 결과 - {{ city }} {{ district }}</p>
 
-    {% if weather %}
-        <p style="text-align:center; font-size:18px;">
-            {% if language == "English" %}Current weather: {{ weather }}
-            {% elif language == "Japanese" %}現在の天気: {{ weather }}
-            {% elif language == "Chinese" %}当前天气: {{ weather }}
-            {% else %}현재 날씨: {{ weather }}
-            {% endif %}
-        </p>
-    {% endif %}
+{% if weather %}
+    <p style="text-align:center; font-size:18px;">현재 날씨: {{ weather }}</p>
+{% endif %}
 
-    {% if error %}
-        <p class="no-results">{{ error }}</p>
-    {% elif places %}
-        <div class="container">
-            {% for place in places %}
-                <div class="card">
-                    <h3>{{ place.title }}</h3>
-
-                    <p>
-                        <strong>
-                            {% if language == "English" %}Address:
-                            {% elif language == "Japanese" %}住所:
-                            {% elif language == "Chinese" %}地址:
-                            {% else %}주소:
-                            {% endif %}
-                        </strong>
-                        {{ place.addr if place.addr else (
-                            "Not available" if language == "English" else
-                            "情報なし" if language == "Japanese" else
-                            "无信息" if language == "Chinese" else
-                            "정보 없음"
-                        ) }}
-                    </p>
-
-                    <p>
-                        <strong>
-                            {% if language == "English" %}Phone:
-                            {% elif language == "Japanese" %}電話番号:
-                            {% elif language == "Chinese" %}电话:
-                            {% else %}전화번호:
-                            {% endif %}
-                        </strong>
-                        {{ place.tel if place.tel else (
-                            "Not available" if language == "English" else
-                            "情報なし" if language == "Japanese" else
-                            "无信息" if language == "Chinese" else
-                            "정보 없음"
-                        ) }}
-                    </p>
-
-                    <p>
-                        <strong>
-                            {% if language == "English" %}Opening Hours:
-                            {% elif language == "Japanese" %}営業時間:
-                            {% elif language == "Chinese" %}营业时间:
-                            {% else %}운영시간:
-                            {% endif %}
-                        </strong>
-                        {{ place.openTime if place.openTime else (
-                            "Not available" if language == "English" else
-                            "情報なし" if language == "Japanese" else
-                            "无信息" if language == "Chinese" else
-                            "정보 없음"
-                        ) }}
-                    </p>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p class="no-results">
-            {% if language == "English" %}No recommendations found.
-            {% elif language == "Japanese" %}おすすめが見つかりませんでした。
-            {% elif language == "Chinese" %}未找到推荐结果。
-            {% else %}추천 결과가 없습니다.
-            {% endif %}
-            (places 길이: {{ places|length }})
-        </p>
-    {% endif %}
-
-    <div style="text-align:center; margin-top: 40px;">
-        <a href="/" style="
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #4e73df;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-        " onmouseover="this.style.backgroundColor='#3752c5'" onmouseout="this.style.backgroundColor='#4e73df'">
-            {% if language == "English" %}Go to Home
-            {% elif language == "Japanese" %}ホームに戻る
-            {% elif language == "Chinese" %}回到首页
-            {% else %}홈으로 돌아가기
-            {% endif %}
-        </a>
+{% if error %}
+    <p class="no-results">{{ error }}</p>
+{% elif places %}
+    <div class="container">
+        {% for place in places %}
+            <div class="card" onclick="showMapDetail({
+                    title: `{{ place.title }}`,
+                    map_addr: `{{ place.map_addr | replace('`', '') }}`,
+                    image: `{{ place.firstimage }}`
+                    })">
+                <h3>{{ place.title }}</h3>
+                <p><strong>주소:</strong> {{ place.addr if place.addr else "정보 없음" }}</p>
+                <p><strong>전화번호:</strong> {{ place.tel if place.tel else "정보 없음" }}</p>
+                <p><strong>운영시간:</strong> {{ place.openTime if place.openTime else "정보 없음" }}</p>
+            </div>
+        {% endfor %}
     </div>
+{% else %}
+    <p class="no-results">추천 결과가 없습니다. (places 길이: {{ places|length }})</p>
+{% endif %}
+
+<div style="text-align:center; margin-top: 40px;">
+    <a href="/" style="
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #4e73df;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+  " onmouseover="this.style.backgroundColor='#3752c5'" onmouseout="this.style.backgroundColor='#4e73df'">
+        홈으로 돌아가기
+    </a>
+</div>
+
+<!-- 지도 + 이미지 배너 -->
+<div id="mapContainer">
+    <button class="close-btn" onclick="document.getElementById('mapContainer').style.display='none'">✕</button>
+    <img id="mapPlaceImage" src="" alt="사진 없음">
+    <div id="mapPlaceTitle"></div>
+    <div id="map"></div>
+</div>
+
+<script>
+    function showMapDetail(place) {
+        const container = document.getElementById('mapContainer');
+        const mapDiv = document.getElementById('map');
+        const titleEl = document.getElementById('mapPlaceTitle');
+        const imgEl = document.getElementById('mapPlaceImage');
+
+        titleEl.innerText = place.title;
+
+        if (place.image && place.image.startsWith("http")) {
+            imgEl.src = place.image;
+            imgEl.alt = `${place.title} 사진`;
+            imgEl.style.background = "none";
+        } else {
+            imgEl.src = "";
+            imgEl.alt = "사진 없음";
+            imgEl.style.background = "#eee";
+            imgEl.style.display = "block";
+        }
+
+        container.style.display = 'block';
+        mapDiv.innerHTML = '';
+
+        setTimeout(() => {
+            const geocoder = new kakao.maps.services.Geocoder();
+            geocoder.addressSearch(place.map_addr, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    const map = new kakao.maps.Map(mapDiv, {
+                        center: coords,
+                        level: 3
+                    });
+                    new kakao.maps.Marker({
+                        map: map,
+                        position: coords
+                    });
+                } else {
+                    alert("지도를 찾을 수 없습니다.");
+                }
+            });
+        }, 150);
+    }
+</script>
 </body>
 </html>
