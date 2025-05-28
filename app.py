@@ -47,15 +47,12 @@ async def select_category(request: Request, language: str = "Korean"):
 
 #  3. 지역 선택 페이지 (시/도, 시군구)
 @app.post("/select_region", response_class=HTMLResponse)
-async def select_region(request: Request, 
-                        category: str = Form(...),
-                        language: str = Form(...)
-                        ):
+async def select_region(request: Request, language: str = Form(...)):
     return templates.TemplateResponse("select_region.html", {
-        "request": request, 
-        "category": category,
+        "request": request,
         "language": language
-        })
+    })
+
 
 #  4. 최종 추천 결과 페이지
 from translatepy import Translator
@@ -145,11 +142,23 @@ async def show_recommendations(
         "error": None
     })
 
-@app.get("/select_category")
-def select_category(request: Request, language: str = "Korean"):
+@app.post("/select_category", response_class=HTMLResponse)
+async def select_category(
+    request: Request,
+    language: str = Form(...),
+    category: str = Form(...),
+    city: str = Form(...),
+    district: str = Form(...),
+    city_name: str = Form(...),
+    district_name: str = Form(...)
+):
     return templates.TemplateResponse("select_category.html", {
         "request": request,
-        "language": language
+        "language": language,
+        "city": city,
+        "district": district,
+        "city_name": city_name,
+        "district_name": district_name
     })
 
 #   (API) 시/도 리스트 가져오기
@@ -293,7 +302,7 @@ async def get_api_recommendations(category: str, area_code: str, sigungu_code: s
             data = json.loads(data)
     except Exception as e:
         print("[DEBUG] JSON 파싱 실패:", e)
-        return []
+        return [] 
 
 
     items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
