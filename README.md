@@ -82,7 +82,7 @@
 
 ![image](https://github.com/user-attachments/assets/56fffd18-60cf-4800-ba0f-f8d43559c22b)
 
-아래는 **KoreaTripMate**의 실제 실행 화면입니다.  
+**KoreaTripMate**의 실제 실행 화면입니다.  
 관광지, 음식점, 숙소 추천 기능과 Kakao Map 기반 위치 시각화 기능이 포함되어 있습니다
   
   
