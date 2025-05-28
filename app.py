@@ -31,22 +31,21 @@ CATEGORY_CODE_MAP = {
     "관광지": "12",    # 관광지
     "쇼핑": "38",      # 쇼핑
 }
-
-@app.get("/recommend/hotel")
-async def recommend_hotel(user_id: int = 1):
-    return {"recommendations": get_hotel_recommendations(user_id)}
-
-@app.get("/recommend/restaurant")
-async def recommend_restaurant(user_id: int = 1):
-    return {"recommendations": get_restaurant_recommendations(user_id)}
-
-
-# ▶ 1. 카테고리 선택 페이지
+# 1. 시작 페이지 → 언어 선택
 @app.get("/", response_class=HTMLResponse)
-async def select_category(request: Request):
-    return templates.TemplateResponse("select_category.html", {"request": request})
+async def select_language(request: Request):
+    return templates.TemplateResponse("select_language.html", {"request": request})
 
-# ▶ 2. 지역 선택 페이지 (시/도, 시군구)
+# 2. 카테고리 선택 페이지 (언어 파라미터를 받아서 전달)
+@app.get("/select_category", response_class=HTMLResponse)
+async def select_category(request: Request, language: str = "Korean"):
+    return templates.TemplateResponse("select_category.html", {
+        "request": request,
+        "language": language
+    })
+
+
+#  3. 지역 선택 페이지 (시/도, 시군구)
 @app.post("/select_region", response_class=HTMLResponse)
 async def select_region(request: Request, 
                         category: str = Form(...),
@@ -58,7 +57,7 @@ async def select_region(request: Request,
         "language": language
         })
 
-# ▶ 3. 최종 추천 결과 페이지
+#  4. 최종 추천 결과 페이지
 from translatepy import Translator
 translator = Translator()
 
@@ -146,8 +145,14 @@ async def show_recommendations(
         "error": None
     })
 
+@app.get("/select_category")
+def select_category(request: Request, language: str = "Korean"):
+    return templates.TemplateResponse("select_category.html", {
+        "request": request,
+        "language": language
+    })
 
-# ▶ 4. (API) 시/도 리스트 가져오기
+#   (API) 시/도 리스트 가져오기
 @app.get("/get_cities", response_class=JSONResponse)
 async def get_cities():
     url = f"http://apis.data.go.kr/B551011/KorService1/areaCode1?serviceKey={SERVICE_KEY}"
@@ -173,7 +178,7 @@ async def get_cities():
     cities = [{"name": item["name"], "code": item["code"]} for item in items]
     return JSONResponse(content={"cities": cities})
 
-# ▶ 5. (API) 선택한 시/도에 대한 시군구 리스트 가져오기
+#  (API) 선택한 시/도에 대한 시군구 리스트 가져오기
 @app.get("/get_districts", response_class=JSONResponse)
 async def get_districts(area_code: int):
     #  areaCode는 URL에 직접 포함

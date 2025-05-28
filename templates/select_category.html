@@ -14,6 +14,7 @@
             justify-content: center;
             height: 100vh;
         }
+
         h1 {
             font-size: 36px;
             margin-bottom: 10px;
@@ -36,6 +37,7 @@
             flex-direction: column;
             align-items: center;
         }
+
         select {
             font-size: 16px;
             padding: 10px 15px;
@@ -63,10 +65,12 @@
 </head>
 <body>
     <h1>🌏 KoreaTripMate</h1>
-    <p class="subtitle">어디로 떠나볼까요?</p>
+    <p class="subtitle" id="subtitle">카테고리를 선택해주세요</p>
 
     <form action="/select_region" method="post">
-        <select name="category" required>
+        <input type="hidden" name="language" id="languageInput" value="">
+        
+        <select name="category" required id="categorySelect">
             <option value="" disabled selected>카테고리를 선택하세요</option>
             <option value="관광지">관광지</option>
             <option value="숙소">숙소</option>
@@ -74,19 +78,42 @@
             <option value="쇼핑">쇼핑</option>
         </select>
 
-        <br>
-        
-        <label for="language">언어 선택:</label>
-        <select name="language" required>
-            <option value="Korean">한국어</option>
-            <option value="English">English</option>
-            <option value="Japanese">日本語</option>
-            <option value="Chinese">中文</option>
-        </select>
-
-        <br>
-
-        <button type="submit">다음으로</button>
+        <button type="submit" id="nextBtn">다음으로</button>
     </form>
+
+    <script>
+        // 언어에 따라 UI 텍스트 바꾸기
+        const urlParams = new URLSearchParams(window.location.search);
+        const lang = urlParams.get('language');
+        document.getElementById('languageInput').value = lang;
+
+        if (lang === 'English') {
+            document.getElementById('subtitle').innerText = 'Please select a category';
+            document.getElementById('categorySelect').options[0].text = 'Select a category';
+            document.getElementById('categorySelect').options[1].text = 'Tourist Attractions';
+            document.getElementById('categorySelect').options[2].text = 'Accommodation';
+            document.getElementById('categorySelect').options[3].text = 'Restaurants';
+            document.getElementById('categorySelect').options[4].text = 'Shopping';
+            document.getElementById('nextBtn').innerText = 'Next';
+        } else if (lang === 'Japanese') {
+            document.getElementById('subtitle').innerText = 'カテゴリを選んでください';
+            document.getElementById('categorySelect').options[0].text = 'カテゴリを選択';
+            document.getElementById('categorySelect').options[1].text = '観光地';
+            document.getElementById('categorySelect').options[2].text = '宿泊';
+            document.getElementById('categorySelect').options[3].text = 'レストラン';
+            document.getElementById('categorySelect').options[4].text = 'ショッピング';
+            document.getElementById('nextBtn').innerText = '次へ';
+        } else if (lang === 'Chinese') {
+            document.getElementById('subtitle').innerText = '请选择分类';
+            document.getElementById('categorySelect').options[0].text = '请选择分类';
+            document.getElementById('categorySelect').options[1].text = '旅游景点';
+            document.getElementById('categorySelect').options[2].text = '住宿';
+            document.getElementById('categorySelect').options[3].text = '餐厅';
+            document.getElementById('categorySelect').options[4].text = '购物';
+            document.getElementById('nextBtn').innerText = '下一步';
+        }
+        // Korean이거나 없는 경우는 기본 텍스트 유지
+    </script>
 </body>
 </html>
+
