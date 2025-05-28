@@ -47,6 +47,13 @@
             width: 250px;
         }
 
+        .button-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
         button {
             background-color: #4e73df;
             color: white;
@@ -61,15 +68,27 @@
         button:hover {
             background-color: #3752c5;
         }
+
+        .back-btn {
+            background-color: #bbb;
+        }
+
+        .back-btn:hover {
+            background-color: #888;
+        }
     </style>
 </head>
 <body>
     <h1>🌏 KoreaTripMate</h1>
     <p class="subtitle" id="subtitle">카테고리를 선택해주세요</p>
 
-    <form action="/select_region" method="post">
-        <input type="hidden" name="language" id="languageInput" value="">
-        
+    <form method="post">
+        <input type="hidden" name="language" value="{{ language }}">
+        <input type="hidden" name="city" value="{{ city }}">
+        <input type="hidden" name="district" value="{{ district }}">
+        <input type="hidden" name="city_name" value="{{ city_name }}">
+        <input type="hidden" name="district_name" value="{{ district_name }}">
+
         <select name="category" required id="categorySelect">
             <option value="" disabled selected>카테고리를 선택하세요</option>
             <option value="관광지">관광지</option>
@@ -78,14 +97,24 @@
             <option value="쇼핑">쇼핑</option>
         </select>
 
-        <button type="submit" id="nextBtn">다음으로</button>
+        <div class="button-row">
+            <button type="submit" id="nextBtn" formaction="/show_recommendations">추천 보기</button>
+            <button type="submit" class="back-btn" formaction="/select_region">
+                {% if language == "English" %}
+                    Back to Region Selection
+                {% elif language == "Japanese" %}
+                    地域の選択に戻る
+                {% elif language == "Chinese" %}
+                    返回地区选择
+                {% else %}
+                    지역 선택으로 돌아가기
+                {% endif %}
+            </button>
+        </div>
     </form>
 
     <script>
-        // 언어에 따라 UI 텍스트 바꾸기
-        const urlParams = new URLSearchParams(window.location.search);
-        const lang = urlParams.get('language');
-        document.getElementById('languageInput').value = lang;
+        const lang = "{{ language }}";
 
         if (lang === 'English') {
             document.getElementById('subtitle').innerText = 'Please select a category';
@@ -112,8 +141,6 @@
             document.getElementById('categorySelect').options[4].text = '购物';
             document.getElementById('nextBtn').innerText = '下一步';
         }
-        // Korean이거나 없는 경우는 기본 텍스트 유지
     </script>
 </body>
 </html>
-

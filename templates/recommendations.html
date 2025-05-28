@@ -137,9 +137,51 @@
                     image: `{{ place.firstimage }}`
                     })">
                 <h3>{{ place.title }}</h3>
-                <p><strong>주소:</strong> {{ place.addr if place.addr else "정보 없음" }}</p>
-                <p><strong>전화번호:</strong> {{ place.tel if place.tel else "정보 없음" }}</p>
-                <p><strong>운영시간:</strong> {{ place.openTime if place.openTime else "정보 없음" }}</p>
+                <p>
+                    <strong>
+                        {% if language == "English" %}Address:
+                        {% elif language == "Japanese" %}住所:
+                        {% elif language == "Chinese" %}地址:
+                        {% else %}주소:
+                        {% endif %}
+                    </strong>
+                    {{ place.addr if place.addr else (
+                        "Not available" if language == "English" else
+                        "情報なし" if language == "Japanese" else
+                        "无信息" if language == "Chinese" else
+                        "정보 없음") }}
+                </p>
+
+                <p>
+                    <strong>
+                        {% if language == "English" %}Phone:
+                        {% elif language == "Japanese" %}電話番号:
+                        {% elif language == "Chinese" %}电话号码:
+                        {% else %}전화번호:
+                        {% endif %}
+                    </strong>
+                    {{ place.tel if place.tel else (
+                        "Not available" if language == "English" else
+                        "情報なし" if language == "Japanese" else
+                        "无信息" if language == "Chinese" else
+                        "정보 없음") }}
+                </p>
+
+<p>
+    <strong>
+        {% if language == "English" %}Opening Hours:
+        {% elif language == "Japanese" %}営業時間:
+        {% elif language == "Chinese" %}营业时间:
+        {% else %}운영시간:
+        {% endif %}
+    </strong>
+    {{ place.openTime if place.openTime else (
+        "Not available" if language == "English" else
+        "情報なし" if language == "Japanese" else
+        "无信息" if language == "Chinese" else
+        "정보 없음") }}
+</p>
+
             </div>
         {% endfor %}
     </div>
@@ -168,6 +210,48 @@
         홈으로 돌아가기
     {% endif %}
     </a>
+
+  
+    <!-- 카테고리 재선택 버튼 -->
+    <form action="/select_category" method="get" style="display:inline-block; margin: 10px;">
+        <input type="hidden" name="language" value="{{ language }}">
+        <button type="submit" style="
+            padding: 10px 20px;
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        " onmouseover="this.style.backgroundColor='#3752c5'" onmouseout="this.style.backgroundColor='#4e73df'">
+            {% if language == "English" %}Choose Another Category
+            {% elif language == "Japanese" %}別のカテゴリを選ぶ
+            {% elif language == "Chinese" %}选择其他类别
+            {% else %}다른 카테고리를 선택해요{% endif %}
+        </button>
+    </form>
+
+    <!-- 지역 재선택 버튼 -->
+    <form action="/select_region" method="post" style="display:inline-block; margin: 10px;">
+        <input type="hidden" name="category" value="{{ category }}">
+        <input type="hidden" name="language" value="{{ language }}">
+        <button type="submit" style="
+            padding: 10px 20px;
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        " onmouseover="this.style.backgroundColor='#3752c5'" onmouseout="this.style.backgroundColor='#4e73df'">
+            {% if language == "English" %}Choose Another Region
+            {% elif language == "Japanese" %}別の地域を選ぶ
+            {% elif language == "Chinese" %}选择其他地区
+            {% else %}다른 지역을 선택해요{% endif %}
+        </button>
+    </form>
 </div>
 
 <!-- 지도 + 이미지 배너 -->

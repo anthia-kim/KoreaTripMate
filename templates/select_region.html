@@ -57,6 +57,15 @@
     button:hover {
       background-color: #3752c5;
     }
+
+    .back-btn {
+      background-color: #888;
+      margin-top: 10px;
+    }
+
+    .back-btn:hover {
+      background-color: #666;
+    }
   </style>
 
   <script>
@@ -76,7 +85,9 @@
       const citySelect = document.getElementById("city");
       const districtSelect = document.getElementById("district");
       const areaCode = citySelect.value;
-      districtSelect.innerHTML = "<option value=\"\" disabled selected>시군구 선택</option>";
+      districtSelect.innerHTML = "<option value=\"\" disabled selected>" + (lang === 'English' ? "Select district" :
+                                                                             lang === 'Japanese' ? "市郡区を選択" :
+                                                                             lang === 'Chinese' ? "请选择区县" : "시군구 선택") + "</option>";
 
       const response = await fetch(`/get_districts?area_code=${areaCode}`);
       const districts = await response.json();
@@ -87,7 +98,6 @@
         districtSelect.appendChild(option);
       });
 
-      // 지역 이름 hidden input 값 설정
       const cityText = citySelect.options[citySelect.selectedIndex].text;
       document.getElementById("city_name").value = cityText;
     }
@@ -98,18 +108,39 @@
       document.getElementById("district_name").value = districtText;
     }
 
-    window.onload = loadCities;
+    const urlParams = new URLSearchParams(window.location.search);
+    const lang = urlParams.get("language") || "{{ language }}";
+
+    window.onload = function () {
+      loadCities();
+
+      // 다국어 UI 텍스트 처리
+      if (lang === 'English') {
+        document.getElementById('subtitle').innerText = 'Please select your region';
+        document.getElementById('submitBtn').innerText = 'Next';
+        document.getElementById('city').options[0].text = 'Select city/province';
+      } else if (lang === 'Japanese') {
+        document.getElementById('subtitle').innerText = '地域を選択してください';
+        document.getElementById('submitBtn').innerText = '次へ';
+        document.getElementById('city').options[0].text = '市/道を選択';
+      } else if (lang === 'Chinese') {
+        document.getElementById('subtitle').innerText = '请选择地区';
+        document.getElementById('submitBtn').innerText = '下一步';
+        document.getElementById('city').options[0].text = '请选择城市/省份';
+      }
+    }
   </script>
 </head>
 <body>
   <h1>🌏 KoreaTripMate</h1>
-  <p class="subtitle">{{ category }} 추천을 위한 지역을 선택하세요</p>
+  <p class="subtitle" id="subtitle">{{ category }} 추천을 위한 지역을 선택하세요</p>
 
-  <form action="/show_recommendations" method="post">
+  <!-- 지역 선택 후 → 카테고리 선택 페이지로 이동 -->
+  <form action="/select_category" method="post">
+    <input type="hidden" name="language" value="{{ language }}">
     <input type="hidden" name="category" value="{{ category }}">
     <input type="hidden" id="city_name" name="city_name">
     <input type="hidden" id="district_name" name="district_name">
-    <input type="hidden" name="language" value="{{ language }}">
 
     <select id="city" name="city" onchange="loadDistricts()" required>
       <option value="" disabled selected>시/도 선택</option>
@@ -119,7 +150,17 @@
       <option value="" disabled selected>시군구 선택</option>
     </select>
 
-    <button type="submit">추천 보기</button>
+    <button type="submit" id="submitBtn">어떤거 추천?</button>
+  </form>
+
+  <!-- 언어 선택으로 돌아가기 -->
+  <form action="/" method="get">
+    <button class="back-btn" type="submit">
+      {% if language == "English" %}Back to Language Selection
+      {% elif language == "Japanese" %}言語選択に戻る
+      {% elif language == "Chinese" %}返回语言选择
+      {% else %}언어 선택으로 돌아가기{% endif %}
+    </button>
   </form>
 </body>
 </html>
