@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>KoreaTripMate - 언어 선택</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f1f2f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        form {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        select {
+            font-size: 16px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 250px;
+        }
+
+        button {
+            background-color: #4e73df;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3752c5;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌏 KoreaTripMate</h1>
+    <p class="subtitle">언어를 선택해주세요</p>
+
+    <form action="/select_category" method="get">
+        <select name="language" required>
+            <option value="Korean">한국어</option>
+            <option value="English">English</option>
+            <option value="Japanese">日本語</option>
+            <option value="Chinese">中文</option>
+        </select>
+
+        <button type="submit">다음으로</button>
+    </form>
+</body>
+</html>

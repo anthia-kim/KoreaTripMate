@@ -158,7 +158,15 @@
       font-size: 16px;
       transition: background-color 0.3s ease;
   " onmouseover="this.style.backgroundColor='#3752c5'" onmouseout="this.style.backgroundColor='#4e73df'">
+    {% if language == "English" %}
+        Go to Home
+    {% elif language == "Japanese" %}
+        ホームに戻る
+    {% elif language == "Chinese" %}
+        回到首页
+    {% else %}
         홈으로 돌아가기
+    {% endif %}
     </a>
 </div>
 
