@@ -302,7 +302,9 @@ async def get_api_recommendations(category: str, area_code: str, sigungu_code: s
             "tel": item.get("tel", ""),
             "openTime": item.get("openTime", ""),
             "addr": item.get("addr1", ""),
-            "cat3": item.get("cat3", "")  # 관광지 세부 분류
+            "map_addr": item.get("addr1", ""),
+            "cat3": item.get("cat3", ""),
+            "firstimage": item.get("firstimage", "")
         })
 
     return results
