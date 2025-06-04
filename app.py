@@ -74,8 +74,10 @@ async def show_recommendations(
         return templates.TemplateResponse("recommendations.html", {
             "request": request,
             "category": category,
-            "city": city_name,
-            "district": district_name,
+            "city": city,
+            "district": district,
+            "city_name": city_name,
+            "district_name": district_name,
             "places": [],
             "weather": None,
             "weather_display": None,
@@ -133,8 +135,10 @@ async def show_recommendations(
     return templates.TemplateResponse("recommendations.html", {
         "request": request,
         "category": category,
-        "city": city_name,
-        "district": district_name,
+        "city": city,                   # 지역 코드 (숫자)
+        "district": district,           # 시군구 코드 (숫자)
+        "city_name": city_name,         # 한글 지역명
+        "district_name": district_name,
         "places": places,
         "weather": weather,
         "weather_display": weather_display,
