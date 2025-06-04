@@ -120,7 +120,7 @@
 </head>
 <body>
 <h1>🌏 KoreaTripMate</h1>
-<p class="subtitle">{{ category }} 추천 결과 - {{ city }} {{ district }}</p>
+<p class="subtitle">{{ category }} 추천 결과 - {{ city_name }} {{ district_name }}</p>
 
 {% if weather %}
     <p style="text-align:center; font-size:18px;">현재 날씨: {{ weather }}</p>
@@ -213,8 +213,13 @@
 
   
     <!-- 카테고리 재선택 버튼 -->
-    <form action="/select_category" method="get" style="display:inline-block; margin: 10px;">
+    <form action="/select_category" method="post" style="display:inline-block; margin: 10px;">
         <input type="hidden" name="language" value="{{ language }}">
+        <input type="hidden" name="category" value="{{ category }}">
+        <input type="hidden" name="city" value="{{ city }}">  <!-- 지역 코드 -->
+        <input type="hidden" name="district" value="{{ district }}">  <!-- 시군구 코드 -->
+        <input type="hidden" name="city_name" value="{{ city_name }}">
+        <input type="hidden" name="district_name" value="{{ district_name }}">
         <button type="submit" style="
             padding: 10px 20px;
             background-color: #4e73df;
