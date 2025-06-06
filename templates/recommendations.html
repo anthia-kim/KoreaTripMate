@@ -120,10 +120,46 @@
 </head>
 <body>
 <h1>🌏 KoreaTripMate</h1>
-<p class="subtitle">{{ category }} 추천 결과 - {{ city_name }} {{ district_name }}</p>
+<p class="subtitle">
+    {% if language == "English" %}
+        {% if category == "관광지" %}Tourist Spot
+        {% elif category == "숙소" %}Accommodation
+        {% elif category == "음식점" %}Restaurant
+        {% elif category == "쇼핑" %}Shopping
+        {% else %}{{ category }}
+        {% endif %}
+        Recommendation Result - {{ city_name }} {{ district_name }}
+    {% elif language == "Japanese" %}
+        {% if category == "관광지" %}観光地
+        {% elif category == "숙소" %}宿泊施設
+        {% elif category == "음식점" %}レストラン
+        {% elif category == "쇼핑" %}ショッピング
+        {% else %}{{ category }}
+        {% endif %}
+        のおすすめ結果 - {{ city_name }} {{ district_name }}
+    {% elif language == "Chinese" %}
+        {% if category == "관광지" %}景点
+        {% elif category == "숙소" %}住宿
+        {% elif category == "음식점" %}餐厅
+        {% elif category == "쇼핑" %}购物
+        {% else %}{{ category }}
+        {% endif %}
+        推荐结果 - {{ city_name }} {{ district_name }}
+    {% else %}
+        {{ category }} 추천 결과 - {{ city_name }} {{ district_name }}
+    {% endif %}
+</p>
+
 
 {% if weather %}
-    <p style="text-align:center; font-size:18px;">현재 날씨: {{ weather }}</p>
+    <p style="text-align:center; font-size:18px;">
+    {% if language == "English" %}Current weather: {{ weather }}
+    {% elif language == "Japanese" %}現在の天気: {{ weather }}
+    {% elif language == "Chinese" %}当前天气: {{ weather }}
+    {% else %}현재 날씨: {{ weather }}
+    {% endif %}
+</p>
+
 {% endif %}
 
 {% if error %}
