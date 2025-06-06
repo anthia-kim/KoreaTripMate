@@ -69,9 +69,17 @@
   </style>
 
   <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const lang = urlParams.get("language") || "{{ language }}";
+
     async function loadCities() {
       const citySelect = document.getElementById("city");
-      const response = await fetch("/get_cities");
+      citySelect.innerHTML = "<option value=\"\" disabled selected>" +
+        (lang === 'English' ? "Select city/province" :
+         lang === 'Japanese' ? "市/道を選択" :
+         lang === 'Chinese' ? "请选择城市/省份" : "시/도 선택") + "</option>";
+
+      const response = await fetch(`/get_cities?language=${lang}`);
       const data = await response.json();
       data.cities.forEach(city => {
         const option = document.createElement("option");
@@ -85,11 +93,13 @@
       const citySelect = document.getElementById("city");
       const districtSelect = document.getElementById("district");
       const areaCode = citySelect.value;
-      districtSelect.innerHTML = "<option value=\"\" disabled selected>" + (lang === 'English' ? "Select district" :
-                                                                             lang === 'Japanese' ? "市郡区を選択" :
-                                                                             lang === 'Chinese' ? "请选择区县" : "시군구 선택") + "</option>";
 
-      const response = await fetch(`/get_districts?area_code=${areaCode}`);
+      districtSelect.innerHTML = "<option value=\"\" disabled selected>" +
+        (lang === 'English' ? "Select district" :
+         lang === 'Japanese' ? "市郡区を選択" :
+         lang === 'Chinese' ? "请选择区县" : "시군구 선택") + "</option>";
+
+      const response = await fetch(`/get_districts?area_code=${areaCode}&language=${lang}`);
       const districts = await response.json();
       districts.forEach(d => {
         const option = document.createElement("option");
@@ -108,25 +118,23 @@
       document.getElementById("district_name").value = districtText;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const lang = urlParams.get("language") || "{{ language }}";
-
     window.onload = function () {
       loadCities();
 
-      // 다국어 UI 텍스트 처리
+document.getElementById("district").options[0].text =
+  lang === 'English' ? "Select district" :
+  lang === 'Japanese' ? "市郡区を選択" :
+  lang === 'Chinese' ? "请选择区县" : "시군구 선택";
+
       if (lang === 'English') {
         document.getElementById('subtitle').innerText = 'Please select your region';
         document.getElementById('submitBtn').innerText = 'Next';
-        document.getElementById('city').options[0].text = 'Select city/province';
       } else if (lang === 'Japanese') {
         document.getElementById('subtitle').innerText = '地域を選択してください';
         document.getElementById('submitBtn').innerText = '次へ';
-        document.getElementById('city').options[0].text = '市/道を選択';
       } else if (lang === 'Chinese') {
         document.getElementById('subtitle').innerText = '请选择地区';
         document.getElementById('submitBtn').innerText = '下一步';
-        document.getElementById('city').options[0].text = '请选择城市/省份';
       }
     }
   </script>
@@ -135,7 +143,6 @@
   <h1>🌏 KoreaTripMate</h1>
   <p class="subtitle" id="subtitle">{{ category }} 추천을 위한 지역을 선택하세요</p>
 
-  <!-- 지역 선택 후 → 카테고리 선택 페이지로 이동 -->
   <form action="/select_category" method="post">
     <input type="hidden" name="language" value="{{ language }}">
     <input type="hidden" name="category" value="{{ category }}">
@@ -153,7 +160,6 @@
     <button type="submit" id="submitBtn">어떤거 추천?</button>
   </form>
 
-  <!-- 언어 선택으로 돌아가기 -->
   <form action="/" method="get">
     <button class="back-btn" type="submit">
       {% if language == "English" %}Back to Language Selection
